@@ -6,17 +6,18 @@ namespace BaiTapThucHanh.Models
 {
     public class Product
     {
+      
         public int Id { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập tên sản phẩm.")]
         [StringLength(100)]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập giá sản phẩm.")]
         [Range(0, 100000000, ErrorMessage = "Giá sản phẩm phải nằm trong khoảng từ 0 đến 100,000,000 VNĐ.")]
         public decimal Price { get; set; }
-
-        public string Description { get; set; }
+        
+        public string? Description { get; set; }
 
         public int CategoryId { get; set; }
 
