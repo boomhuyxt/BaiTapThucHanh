@@ -16,8 +16,18 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // -------------------------------------------------------------------------
-// THÊM ĐOẠN NÀY: CẤU HÌNH DỊCH VỤ CỦA ASP.NET CORE IDENTITY
+// [THÊM MỚI TẠI ĐÂY] - CẤU HÌNH DỊCH VỤ BỘ NHỚ ĐỆM VÀ SESSION CHO GIỎ HÀNG
 // -------------------------------------------------------------------------
+builder.Services.AddDistributedMemoryCache(); // Bắt buộc phải có làm nền tảng cho Session
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // Giỏ hàng tự hủy sau 30 phút không thao tác
+    options.Cookie.HttpOnly = true;                 // Tăng cường bảo mật bảo vệ Cookie giỏ hàng
+    options.Cookie.IsEssential = true;             // Đánh dấu cookie tối quan trọng cho ứng dụng
+});
+// -------------------------------------------------------------------------
+
+// THÊM ĐOẠN NÀY: CẤU HÌNH DỊCH VỤ CỦA ASP.NET CORE IDENTITY
 builder.Services.AddDefaultIdentity<IdentityUser>(options => {
     options.SignIn.RequireConfirmedAccount = false; // Tắt bắt buộc xác nhận Email để làm bài tập dễ dàng hơn
     options.Password.RequireDigit = false;          // Không bắt buộc mật khẩu phải có chữ số
@@ -31,7 +41,6 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => {
 
 // Bắt buộc phải có dịch vụ này thì ứng dụng mới đọc được giao diện Đăng ký/Đăng nhập (Razor Pages) của Identity UI
 builder.Services.AddRazorPages();
-// -------------------------------------------------------------------------
 
 // Thêm các dịch vụ hỗ trợ mô hình MVC (Controller & Views)
 builder.Services.AddControllersWithViews();
@@ -61,9 +70,16 @@ app.UseStaticFiles(new StaticFileOptions
         Path.Combine(app.Environment.ContentRootPath, "images")),
     RequestPath = "/images"
 });
-// ----------------------------------
 
+// ----------------------------------
 app.UseRouting();
+
+// -------------------------------------------------------------------------
+// [THÊM MỚI TẠI ĐÂY] - KÍCH HOẠT MIDDLEWARE SESSION CHO ỨNG DỤNG
+// Quy tắc bắt buộc: Phải nằm SAU UseRouting() và TRƯỚC hai lệnh xác thực tài khoản
+// -------------------------------------------------------------------------
+app.UseSession();
+// -------------------------------------------------------------------------
 
 // BẮT BUỘC: Phải kích hoạt Authentication (Xác thực danh tính) TRƯỚC Authorization (Cấp quyền)
 app.UseAuthentication();
@@ -93,6 +109,6 @@ using (var scope = app.Services.CreateScope())
         // Ghi nhận lỗi nếu hệ thống không kết nối tới SQL Server thành công lúc khởi động
     }
 }
-// =========================================================================
 
+// =========================================================================
 app.Run();
